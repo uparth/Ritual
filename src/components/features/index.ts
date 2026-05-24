@@ -1,3 +1,5 @@
 export { RitualCard } from './RitualCard'
 export { AIMessageCard } from './AIMessageCard'
 export { LowEnergyBanner } from './LowEnergyBanner'
+export { ProgressGraph } from './ProgressGraph'
+export { WeeklyInsightCard } from './WeeklyInsightCard'

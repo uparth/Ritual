@@ -55,6 +55,13 @@ export async function getCheckIn(uid: string, date: string): Promise<DailyCheckI
   return snap.exists() ? (snap.data() as DailyCheckIn) : null
 }
 
+export async function getRecentCheckIns(uid: string, count = 14): Promise<DailyCheckIn[]> {
+  const snap = await getDocs(
+    query(collection(db, 'users', uid, 'daily_checkins'), orderBy('date', 'desc'), limit(count))
+  )
+  return snap.docs.map(d => d.data() as DailyCheckIn).reverse()
+}
+
 export async function saveCheckIn(uid: string, checkIn: CheckInFormData): Promise<void> {
   const ref = doc(db, 'users', uid, 'daily_checkins', checkIn.date)
   const payload = { ...checkIn, aiSessionId: null }
@@ -90,6 +97,18 @@ export async function updateRitual(uid: string, ritualId: string, patch: Partial
 export async function getTodayLogs(uid: string, date: string): Promise<RitualLog[]> {
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'ritual_logs'), where('date', '==', date))
+  )
+  return snap.docs.map(d => d.data() as RitualLog)
+}
+
+export async function getRitualLogsInRange(uid: string, startDate: string, endDate: string): Promise<RitualLog[]> {
+  const snap = await getDocs(
+    query(
+      collection(db, 'users', uid, 'ritual_logs'),
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
+      orderBy('date', 'asc'),
+    )
   )
   return snap.docs.map(d => d.data() as RitualLog)
 }
@@ -149,6 +168,14 @@ export async function logWeight(uid: string, date: string, weightKg: number, not
 export async function getInsight(uid: string, weekId: string): Promise<WeeklyInsight | null> {
   const snap = await getDoc(doc(db, 'users', uid, 'insights', weekId))
   return snap.exists() ? (snap.data() as WeeklyInsight) : null
+}
+
+export async function getLatestInsight(uid: string): Promise<WeeklyInsight | null> {
+  const snap = await getDocs(
+    query(collection(db, 'users', uid, 'insights'), orderBy('generatedAt', 'desc'), limit(1))
+  )
+  if (snap.empty) return null
+  return snap.docs[0].data() as WeeklyInsight
 }
 
 export async function markOnboardingComplete(uid: string): Promise<void> {
