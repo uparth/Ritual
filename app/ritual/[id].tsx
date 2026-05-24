@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Switch, View, StyleSheet, SafeAreaView, ScrollView } from 'react-native'
 import { Controller, useForm } from 'react-hook-form'
 import { router, useLocalSearchParams } from 'expo-router'
-import { colors, spacing } from '@/constants/tokens'
+import { colors, spacing, font } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   header: { gap: spacing.xs },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.md },
   eyebrow: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.family.semibold,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },

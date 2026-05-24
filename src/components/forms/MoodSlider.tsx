@@ -30,7 +30,7 @@ export function MoodSlider({
     <View style={styles.container}>
       <View style={styles.row}>
         <RText variant="small" style={styles.label}>{label}</RText>
-        <RText variant="small" color="primary" style={{ fontFamily: 'Inter-SemiBold' }}>
+        <RText variant="small" color="primary" style={{ fontFamily: font.family.semibold }}>
           {value}
         </RText>
       </View>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.textSecondary,
-    fontFamily: 'Inter-Medium',
+    fontFamily: font.family.medium,
   },
   slider: {
     height: 36,

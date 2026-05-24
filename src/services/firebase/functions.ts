@@ -1,5 +1,5 @@
 import { httpsCallable } from 'firebase/functions'
-import { functions } from './config'
+import { requireFunctions } from './config'
 import { config } from '@/constants/config'
 import type { AIMode, AIInputContext, AISession } from '@/types'
 
@@ -29,7 +29,7 @@ const fnMap: Record<AIMode, string> = {
 
 export async function callAI(payload: AICallPayload): Promise<AICallResult> {
   const fnName = fnMap[payload.mode]
-  const fn = httpsCallable<AICallPayload, AICallResult>(functions, fnName)
+  const fn = httpsCallable<AICallPayload, AICallResult>(requireFunctions(), fnName)
   const result = await fn(payload)
   return result.data
 }

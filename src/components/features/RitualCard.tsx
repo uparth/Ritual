@@ -47,7 +47,7 @@ export function RitualCard({
       <View style={[styles.accent, { backgroundColor: accent }]} />
       <View style={styles.content}>
         <View style={styles.meta}>
-          <RText variant="caption" style={{ color: accent, fontFamily: 'Inter-Medium', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+          <RText variant="caption" style={{ color: accent, fontFamily: font.family.medium, textTransform: 'uppercase', letterSpacing: 0.6 }}>
             {ritual.type}
           </RText>
           {ritual.durationMinutes > 0 && (
@@ -77,7 +77,7 @@ export function RitualCard({
               <RText variant="caption" color="muted">Rest</RText>
             </TouchableOpacity>
             <TouchableOpacity onPress={onComplete} style={styles.doneBtn} hitSlop={8}>
-              <RText variant="caption" style={{ color: colors.success, fontFamily: 'Inter-SemiBold' }}>Done</RText>
+              <RText variant="caption" style={{ color: colors.success, fontFamily: font.family.semibold }}>Done</RText>
             </TouchableOpacity>
           </View>
         )}
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.family.semibold,
   },
   titleDone: {
     textDecorationLine: 'line-through',
@@ -159,6 +159,6 @@ const styles = StyleSheet.create({
   },
   statusIcon: {
     fontSize: font.size.body,
-    fontFamily: 'Inter-Bold',
+    fontFamily: font.family.bold,
   },
 })

@@ -5,6 +5,7 @@ import { getUserDoc, getProfile, setProfile, updateProfile, getPreferences, setP
 import type { Ritual, UserProfile, UserPreferences } from '@/types'
 
 interface UserState {
+  name: string | null
   profile: UserProfile | null
   preferences: UserPreferences | null
   onboardingComplete: boolean
@@ -27,6 +28,7 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       profile: null,
+      name: null,
       preferences: null,
       onboardingComplete: false,
       isPremium: false,
@@ -41,6 +43,7 @@ export const useUserStore = create<UserState>()(
             getPreferences(uid),
           ])
           set({
+            name: user?.name ?? null,
             profile,
             preferences: prefs,
             onboardingComplete: user?.onboardingComplete ?? Boolean(profile),
@@ -83,13 +86,14 @@ export const useUserStore = create<UserState>()(
         })
       },
 
-      reset: () => set({ profile: null, preferences: null, onboardingComplete: false, isPremium: false }),
+      reset: () => set({ name: null, profile: null, preferences: null, onboardingComplete: false, isPremium: false }),
     }),
     {
       name: 'ritual-user-store',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         profile: s.profile,
+        name: s.name,
         preferences: s.preferences,
         onboardingComplete: s.onboardingComplete,
         isPremium: s.isPremium,

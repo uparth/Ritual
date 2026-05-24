@@ -24,5 +24,8 @@ export const config = {
   premium: {
     monthlyProductId: 'ritual_premium_monthly',
     annualProductId:  'ritual_premium_annual',
+    entitlementId:     'premium',
+    revenueCatIosKey:     process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '',
+    revenueCatAndroidKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
   },
 } as const

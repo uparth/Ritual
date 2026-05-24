@@ -114,7 +114,7 @@ export default function SignupScreen() {
 
           <View style={styles.footer}>
             <RText variant="small" color="muted">{copy.auth.hasAccount} </RText>
-            <Button label={copy.auth.signIn} onPress={() => router.replace('/(auth)/login')} variant="ghost" size="sm" />
+            <Button label={copy.auth.signIn} onPress={() => router.replace('/login')} variant="ghost" size="sm" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

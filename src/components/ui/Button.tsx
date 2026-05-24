@@ -55,7 +55,7 @@ export function Button({
         <RText
           style={{
             fontSize,
-            fontFamily: 'Inter-SemiBold',
+            fontFamily: font.family.semibold,
             color: variant === 'ghost' ? colors.primary : colors.textPrimary,
           }}
         >

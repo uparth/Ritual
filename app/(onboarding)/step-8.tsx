@@ -37,7 +37,7 @@ export default function Step8() {
           <Button label="Back" onPress={() => { prevStep(); router.back() }} variant="ghost" style={{ flex: 1 }} />
           <Button
             label="Build my plan →"
-            onPress={() => router.push('/(onboarding)/plan')}
+            onPress={() => router.push('/plan')}
             disabled={!answers.preferredTone}
             style={{ flex: 2 }}
           />

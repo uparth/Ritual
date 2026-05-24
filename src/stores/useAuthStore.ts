@@ -32,6 +32,12 @@ function getAuthErrorMessage(error: unknown): string {
       return 'Please use a password with at least 8 characters.'
     case 'auth/network-request-failed':
       return 'You seem to be offline. Please try again when connected.'
+    case 'auth/operation-not-allowed':
+      return 'Email/password sign-in is not enabled in Firebase Authentication.'
+    case 'auth/unauthorized-domain':
+      return 'This localhost domain is not authorized in Firebase Authentication settings.'
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please wait a moment and try again.'
     default:
       return 'Authentication failed. Please try again.'
   }

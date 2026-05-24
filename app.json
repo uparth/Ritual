@@ -28,6 +28,7 @@
     "scheme": "ritual",
     "plugins": [
       "expo-router",
+      "expo-notifications",
       "expo-splash-screen",
       "expo-status-bar"
     ],

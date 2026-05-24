@@ -1,8 +1,12 @@
 import { create } from 'zustand'
-import { serverTimestamp } from 'firebase/firestore'
+import { serverTimestamp, type Timestamp } from 'firebase/firestore'
 import { callAI } from '@/services/firebase/functions'
 import { saveAISession, getAISessions, getLatestAISession } from '@/services/firebase/firestore'
 import type { AIMode, AIInputContext, AISession } from '@/types'
+
+function optimisticTimestamp(): Timestamp {
+  return serverTimestamp() as unknown as Timestamp
+}
 
 interface AIState {
   activeSession: AISession | null
@@ -52,7 +56,7 @@ export const useAIStore = create<AIState>((set) => ({
         safetyResponse: result.safetyResponse,
         model: result.model,
         tokensUsed: result.tokensUsed,
-        createdAt: serverTimestamp() as any,
+        createdAt: optimisticTimestamp(),
       }
       const sessionId = result.sessionId ?? await saveAISession(uid, sessionPayload)
       const session = { ...sessionPayload, sessionId }

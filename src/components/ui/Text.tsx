@@ -10,12 +10,12 @@ interface RTextProps extends TextProps {
 }
 
 const variantStyles: Record<Variant, object> = {
-  h1:      { fontSize: font.size.h1,      fontFamily: 'Inter-Bold',     lineHeight: font.size.h1 * font.lineHeight.tight   },
-  h2:      { fontSize: font.size.h2,      fontFamily: 'Inter-SemiBold', lineHeight: font.size.h2 * font.lineHeight.tight   },
-  h3:      { fontSize: font.size.h3,      fontFamily: 'Inter-SemiBold', lineHeight: font.size.h3 * font.lineHeight.normal  },
-  body:    { fontSize: font.size.body,    fontFamily: 'Inter-Regular',  lineHeight: font.size.body * font.lineHeight.relaxed },
-  small:   { fontSize: font.size.small,   fontFamily: 'Inter-Regular',  lineHeight: font.size.small * font.lineHeight.normal },
-  caption: { fontSize: font.size.caption, fontFamily: 'Inter-Regular',  lineHeight: font.size.caption * font.lineHeight.normal },
+  h1:      { fontSize: font.size.h1,      fontFamily: font.family.bold,     lineHeight: font.size.h1 * font.lineHeight.tight   },
+  h2:      { fontSize: font.size.h2,      fontFamily: font.family.semibold, lineHeight: font.size.h2 * font.lineHeight.tight   },
+  h3:      { fontSize: font.size.h3,      fontFamily: font.family.semibold, lineHeight: font.size.h3 * font.lineHeight.normal  },
+  body:    { fontSize: font.size.body,    fontFamily: font.family.regular,  lineHeight: font.size.body * font.lineHeight.relaxed },
+  small:   { fontSize: font.size.small,   fontFamily: font.family.regular,  lineHeight: font.size.small * font.lineHeight.normal },
+  caption: { fontSize: font.size.caption, fontFamily: font.family.regular,  lineHeight: font.size.caption * font.lineHeight.normal },
 }
 
 const colorMap: Record<Color, string> = {

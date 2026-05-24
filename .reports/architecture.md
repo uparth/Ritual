@@ -516,13 +516,13 @@ Configured in both `tsconfig.json` (TypeScript) and `metro.config.js` (bundler).
 - [ ] `@react-native-community/slider` install + native setup
 - [ ] Inter font files in `assets/fonts/`
 - [ ] Firebase project creation + `.env` populated
-- [ ] Cloud Functions scaffold + OpenAI integration
-- [ ] ProgressGraph component (react-native-gifted-charts)
-- [ ] WeeklyInsightCard
-- [ ] BreathingTimer
-- [ ] JournalPromptCard
-- [ ] RevenueCat integration
-- [ ] Push notification setup
+- [x] Cloud Functions scaffold + OpenAI integration
+- [x] ProgressGraph component (react-native-gifted-charts)
+- [x] WeeklyInsightCard
+- [x] BreathingTimer
+- [x] JournalPromptCard
+- [x] RevenueCat integration
+- [x] Push notification setup
 
 ---
 

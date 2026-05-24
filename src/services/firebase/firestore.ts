@@ -12,12 +12,13 @@ import {
   writeBatch,
   serverTimestamp,
 } from 'firebase/firestore'
-import { db } from './config'
+import { requireFirestore } from './config'
 import type { UserDoc, UserProfile, UserPreferences, DailyCheckIn, CheckInFormData, Ritual, RitualLog, AISession, JournalEntry, WeeklyInsight } from '@/types'
 
 // ── User ─────────────────────────────────────────────────────────────────────
 
 export async function getUserDoc(uid: string): Promise<UserDoc | null> {
+  const db = requireFirestore()
   const snap = await getDoc(doc(db, 'users', uid))
   return snap.exists() ? (snap.data() as UserDoc) : null
 }
@@ -25,37 +26,44 @@ export async function getUserDoc(uid: string): Promise<UserDoc | null> {
 // ── Profile ──────────────────────────────────────────────────────────────────
 
 export async function getProfile(uid: string): Promise<UserProfile | null> {
+  const db = requireFirestore()
   const snap = await getDoc(doc(db, 'users', uid, 'profile', 'main'))
   return snap.exists() ? (snap.data() as UserProfile) : null
 }
 
 export async function setProfile(uid: string, profile: Omit<UserProfile, 'updatedAt'>): Promise<void> {
+  const db = requireFirestore()
   await setDoc(doc(db, 'users', uid, 'profile', 'main'), { ...profile, updatedAt: serverTimestamp() })
 }
 
 export async function updateProfile(uid: string, patch: Partial<UserProfile>): Promise<void> {
+  const db = requireFirestore()
   await updateDoc(doc(db, 'users', uid, 'profile', 'main'), { ...patch, updatedAt: serverTimestamp() })
 }
 
 // ── Preferences ──────────────────────────────────────────────────────────────
 
 export async function getPreferences(uid: string): Promise<UserPreferences | null> {
+  const db = requireFirestore()
   const snap = await getDoc(doc(db, 'users', uid, 'preferences', 'main'))
   return snap.exists() ? (snap.data() as UserPreferences) : null
 }
 
 export async function setPreferences(uid: string, prefs: Omit<UserPreferences, 'updatedAt'>): Promise<void> {
+  const db = requireFirestore()
   await setDoc(doc(db, 'users', uid, 'preferences', 'main'), { ...prefs, updatedAt: serverTimestamp() })
 }
 
 // ── Check-ins ─────────────────────────────────────────────────────────────────
 
 export async function getCheckIn(uid: string, date: string): Promise<DailyCheckIn | null> {
+  const db = requireFirestore()
   const snap = await getDoc(doc(db, 'users', uid, 'daily_checkins', date))
   return snap.exists() ? (snap.data() as DailyCheckIn) : null
 }
 
 export async function getRecentCheckIns(uid: string, count = 14): Promise<DailyCheckIn[]> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'daily_checkins'), orderBy('date', 'desc'), limit(count))
   )
@@ -63,6 +71,7 @@ export async function getRecentCheckIns(uid: string, count = 14): Promise<DailyC
 }
 
 export async function saveCheckIn(uid: string, checkIn: CheckInFormData): Promise<void> {
+  const db = requireFirestore()
   const ref = doc(db, 'users', uid, 'daily_checkins', checkIn.date)
   const payload = { ...checkIn, aiSessionId: null }
   const existing = await getDoc(ref)
@@ -76,6 +85,7 @@ export async function saveCheckIn(uid: string, checkIn: CheckInFormData): Promis
 // ── Rituals ───────────────────────────────────────────────────────────────────
 
 export async function getRituals(uid: string): Promise<Ritual[]> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'rituals'), where('isActive', '==', true), orderBy('order'))
   )
@@ -83,18 +93,21 @@ export async function getRituals(uid: string): Promise<Ritual[]> {
 }
 
 export async function addRitual(uid: string, ritual: Omit<Ritual, 'ritualId' | 'createdAt'>): Promise<string> {
+  const db = requireFirestore()
   const ref = doc(collection(db, 'users', uid, 'rituals'))
   await setDoc(ref, { ...ritual, ritualId: ref.id, createdAt: serverTimestamp() })
   return ref.id
 }
 
 export async function updateRitual(uid: string, ritualId: string, patch: Partial<Ritual>): Promise<void> {
+  const db = requireFirestore()
   await updateDoc(doc(db, 'users', uid, 'rituals', ritualId), patch)
 }
 
 // ── Ritual Logs ───────────────────────────────────────────────────────────────
 
 export async function getTodayLogs(uid: string, date: string): Promise<RitualLog[]> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'ritual_logs'), where('date', '==', date))
   )
@@ -102,6 +115,7 @@ export async function getTodayLogs(uid: string, date: string): Promise<RitualLog
 }
 
 export async function getRitualLogsInRange(uid: string, startDate: string, endDate: string): Promise<RitualLog[]> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(
       collection(db, 'users', uid, 'ritual_logs'),
@@ -114,6 +128,7 @@ export async function getRitualLogsInRange(uid: string, startDate: string, endDa
 }
 
 export async function writeRitualLog(uid: string, log: Omit<RitualLog, 'logId'>): Promise<string> {
+  const db = requireFirestore()
   const logId = `${log.date}_${log.ritualId}`
   const ref = doc(db, 'users', uid, 'ritual_logs', logId)
   await setDoc(ref, { ...log, logId }, { merge: true })
@@ -123,12 +138,14 @@ export async function writeRitualLog(uid: string, log: Omit<RitualLog, 'logId'>)
 // ── AI Sessions ───────────────────────────────────────────────────────────────
 
 export async function saveAISession(uid: string, session: Omit<AISession, 'sessionId'>): Promise<string> {
+  const db = requireFirestore()
   const ref = doc(collection(db, 'users', uid, 'ai_sessions'))
   await setDoc(ref, { ...session, sessionId: ref.id })
   return ref.id
 }
 
 export async function getLatestAISession(uid: string): Promise<AISession | null> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'ai_sessions'), orderBy('createdAt', 'desc'), limit(1))
   )
@@ -137,6 +154,7 @@ export async function getLatestAISession(uid: string): Promise<AISession | null>
 }
 
 export async function getAISessions(uid: string, count = 20): Promise<AISession[]> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'ai_sessions'), orderBy('createdAt', 'desc'), limit(count))
   )
@@ -146,18 +164,21 @@ export async function getAISessions(uid: string, count = 20): Promise<AISession[
 // ── Journal ───────────────────────────────────────────────────────────────────
 
 export async function saveJournalEntry(uid: string, entry: Omit<JournalEntry, 'entryId' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  const db = requireFirestore()
   const ref = doc(collection(db, 'users', uid, 'journal_entries'))
   await setDoc(ref, { ...entry, entryId: ref.id, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
   return ref.id
 }
 
 export async function updateJournalEntry(uid: string, entryId: string, body: string): Promise<void> {
+  const db = requireFirestore()
   await updateDoc(doc(db, 'users', uid, 'journal_entries', entryId), { body, updatedAt: serverTimestamp() })
 }
 
 // ── Weight Logs ───────────────────────────────────────────────────────────────
 
 export async function logWeight(uid: string, date: string, weightKg: number, note: string | null): Promise<void> {
+  const db = requireFirestore()
   await setDoc(doc(db, 'users', uid, 'weight_logs', date), {
     date, weightKg, note, createdAt: serverTimestamp(),
   })
@@ -166,11 +187,13 @@ export async function logWeight(uid: string, date: string, weightKg: number, not
 // ── Insights ──────────────────────────────────────────────────────────────────
 
 export async function getInsight(uid: string, weekId: string): Promise<WeeklyInsight | null> {
+  const db = requireFirestore()
   const snap = await getDoc(doc(db, 'users', uid, 'insights', weekId))
   return snap.exists() ? (snap.data() as WeeklyInsight) : null
 }
 
 export async function getLatestInsight(uid: string): Promise<WeeklyInsight | null> {
+  const db = requireFirestore()
   const snap = await getDocs(
     query(collection(db, 'users', uid, 'insights'), orderBy('generatedAt', 'desc'), limit(1))
   )
@@ -179,6 +202,7 @@ export async function getLatestInsight(uid: string): Promise<WeeklyInsight | nul
 }
 
 export async function markOnboardingComplete(uid: string): Promise<void> {
+  const db = requireFirestore()
   await updateDoc(doc(db, 'users', uid), { onboardingComplete: true })
 }
 
@@ -188,6 +212,7 @@ export async function saveOnboardingPlan(
   preferences: Omit<UserPreferences, 'updatedAt'>,
   rituals: Omit<Ritual, 'ritualId' | 'createdAt'>[],
 ): Promise<void> {
+  const db = requireFirestore()
   const batch = writeBatch(db)
   const timestamp = serverTimestamp()
 

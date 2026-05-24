@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native'
-import { colors, radius, spacing } from '@/constants/tokens'
+import { colors, radius, spacing, font } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { copy } from '@/constants/copy'
@@ -37,7 +37,7 @@ export function AIMessageCard({ session, loading, onExpand }: AIMessageCardProps
   return (
     <TouchableOpacity onPress={onExpand} activeOpacity={0.8} style={styles.card}>
       <View style={styles.badge}>
-        <RText variant="caption" color="primary" style={{ fontFamily: 'Inter-SemiBold' }}>AI Coach</RText>
+        <RText variant="caption" color="primary" style={{ fontFamily: font.family.semibold }}>AI Coach</RText>
       </View>
       <RText variant="body" style={styles.message}>{firstSentence}</RText>
       <RText variant="small" color="primary" style={styles.more}>Read more →</RText>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   more: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.family.semibold,
   },
   safetyText: {
     color: colors.warning,

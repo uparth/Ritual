@@ -50,7 +50,7 @@ export default function Step1() {
 
         <Button
           label="Continue"
-          onPress={() => { nextStep(); router.push('/(onboarding)/step-2') }}
+          onPress={() => { nextStep(); router.push('/step-2') }}
           disabled={selected.length === 0}
           fullWidth
           size="lg"

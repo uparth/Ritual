@@ -1,10 +1,14 @@
 import { create } from 'zustand'
-import { serverTimestamp } from 'firebase/firestore'
+import { serverTimestamp, type Timestamp } from 'firebase/firestore'
 import { getRituals, getTodayLogs, addRitual, updateRitual, writeRitualLog } from '@/services/firebase/firestore'
 import type { Ritual, RitualLog } from '@/types'
 
 function todayDateString() {
   return new Date().toISOString().split('T')[0]
+}
+
+function optimisticTimestamp(): Timestamp {
+  return serverTimestamp() as unknown as Timestamp
 }
 
 interface RitualState {
@@ -58,7 +62,7 @@ export const useRitualStore = create<RitualState>((set, get) => ({
       skipReason: null,
       durationActualMinutes: null,
       note: null,
-      completedAt: serverTimestamp() as any,
+      completedAt: optimisticTimestamp(),
     }
     set(s => ({ todayLogs: { ...s.todayLogs, [ritualId]: optimistic } }))
     try {
@@ -91,7 +95,7 @@ export const useRitualStore = create<RitualState>((set, get) => ({
       skipReason: reason ?? null,
       durationActualMinutes: null,
       note: null,
-      completedAt: serverTimestamp() as any,
+      completedAt: optimisticTimestamp(),
     }
     set(s => ({ todayLogs: { ...s.todayLogs, [ritualId]: optimistic } }))
     try {

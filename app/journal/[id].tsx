@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     padding: spacing.screen,
     color: colors.textPrimary,
     fontSize: font.size.body,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.family.regular,
     lineHeight: font.size.body * 1.7,
   },
 })

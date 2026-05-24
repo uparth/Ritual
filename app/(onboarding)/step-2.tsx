@@ -34,7 +34,7 @@ export default function Step2() {
 
         <View style={styles.buttons}>
           <Button label="Back" onPress={() => { prevStep(); router.back() }} variant="ghost" style={{ flex: 1 }} />
-          <Button label="Continue" onPress={() => { nextStep(); router.push('/(onboarding)/step-3') }} style={{ flex: 2 }} />
+          <Button label="Continue" onPress={() => { nextStep(); router.push('/step-3') }} style={{ flex: 2 }} />
         </View>
       </View>
     </SafeAreaView>

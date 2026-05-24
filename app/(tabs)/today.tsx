@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { RitualCard } from '@/components/features/RitualCard'
 import { AIMessageCard } from '@/components/features/AIMessageCard'
 import { LowEnergyBanner } from '@/components/features/LowEnergyBanner'
+import { JournalPromptCard } from '@/components/features/JournalPromptCard'
 import { copy } from '@/constants/copy'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useUserStore } from '@/stores/useUserStore'
@@ -20,15 +21,13 @@ import { getGreetingKey } from '@/utils/planBuilder'
 
 export default function TodayScreen() {
   const { uid } = useAuthStore()
-  const { profile } = useUserStore()
+  const { name } = useUserStore()
   const { todayCheckIn, loading: checkInLoading, error: checkInError, fetchToday } = useCheckInStore()
   const { rituals, todayLogs, loading: ritualsLoading, error: ritualError, fetchRituals, fetchTodayLogs, completeRitual, skipRitual } = useRitualStore()
   const { activeSession, loading: aiLoading, fetchLatest } = useAIStore()
 
   const energy = todayCheckIn?.energy ?? 10
   const greetingKey = getGreetingKey()
-  const name = profile?.preferredTone ? (profile as any).name ?? '' : ''
-
   useEffect(() => {
     if (!uid) return
     void fetchToday(uid)
@@ -89,10 +88,15 @@ export default function TodayScreen() {
         <AIMessageCard
           session={activeSession}
           loading={aiLoading}
-          onExpand={() => router.push('/(tabs)/coach')}
+          onExpand={() => router.push('/coach')}
         />
 
         <Divider />
+
+        <JournalPromptCard
+          energy={todayCheckIn?.energy}
+          stress={todayCheckIn?.stress}
+        />
 
         {/* Today's Rituals */}
         <View style={styles.section}>

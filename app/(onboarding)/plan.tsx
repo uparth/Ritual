@@ -131,7 +131,7 @@ export default function PlanScreen() {
 
         <Button
           label={copy.onboarding.plan.cta}
-          onPress={() => { resetOnboarding(); router.replace('/(tabs)/today') }}
+          onPress={() => { resetOnboarding(); router.replace('/today') }}
           fullWidth
           size="lg"
         />

@@ -1,9 +1,10 @@
 import { View, ScrollView, StyleSheet, SafeAreaView } from 'react-native'
 import { router } from 'expo-router'
-import { colors, spacing } from '@/constants/tokens'
+import { colors, spacing, font } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { BreathingTimer } from '@/components/features'
 import { copy } from '@/constants/copy'
 import { useRitualStore } from '@/stores/useRitualStore'
 
@@ -41,6 +42,8 @@ export default function LowEnergyScreen() {
 
         <RText variant="body" color="muted" style={styles.rest}>{copy.lowEnergy.rest}</RText>
 
+        <BreathingTimer />
+
         <Button
           label="Return to today"
           onPress={() => router.back()}
@@ -71,7 +74,7 @@ const styles = StyleSheet.create({
     width: 28,
   },
   indexText: {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.family.semibold,
   },
   ritualText: {
     flex: 1,

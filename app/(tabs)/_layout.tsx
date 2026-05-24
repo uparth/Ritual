@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: font.size.caption,
     color: colors.muted,
-    fontFamily: 'Inter-Medium',
+    fontFamily: font.family.medium,
   },
   labelActive: {
     color: colors.primary,

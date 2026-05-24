@@ -1,5 +1,5 @@
 import { TouchableOpacity, StyleSheet } from 'react-native'
-import { colors, radius, spacing } from '@/constants/tokens'
+import { colors, radius, spacing, font } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { copy } from '@/constants/copy'
 import { config } from '@/constants/config'
@@ -33,11 +33,11 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.warning,
-    fontFamily: 'Inter-Medium',
+    fontFamily: font.family.medium,
     flex: 1,
   },
   cta: {
     color: colors.warning,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: font.family.semibold,
   },
 })

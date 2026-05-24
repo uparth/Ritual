@@ -39,7 +39,7 @@ export function Chip({
       <RText
         style={[
           styles.label,
-          selected && { color: chipTextColor[variant], fontFamily: 'Inter-Medium' },
+          selected && { color: chipTextColor[variant], fontFamily: font.family.medium },
         ]}
       >
         {label}
@@ -94,6 +94,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: font.size.small,
     color: colors.textSecondary,
-    fontFamily: 'Inter-Regular',
+    fontFamily: font.family.regular,
   },
 })
