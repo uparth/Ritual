@@ -54,7 +54,7 @@ export const useAIStore = create<AIState>((set) => ({
         tokensUsed: result.tokensUsed,
         createdAt: serverTimestamp() as any,
       }
-      const sessionId = await saveAISession(uid, sessionPayload)
+      const sessionId = result.sessionId ?? await saveAISession(uid, sessionPayload)
       const session = { ...sessionPayload, sessionId }
       set(s => ({
         activeSession: session,

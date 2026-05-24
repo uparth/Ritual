@@ -9,6 +9,7 @@ interface AICallPayload {
 }
 
 interface AICallResult {
+  sessionId?: string
   response: string
   safetyFlagged: boolean
   safetyResponse: string | null
