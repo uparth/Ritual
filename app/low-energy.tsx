@@ -6,18 +6,18 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { copy } from '@/constants/copy'
 import { useRitualStore } from '@/stores/useRitualStore'
-import { useAuthStore } from '@/stores/useAuthStore'
-
-const minimumRituals = [
-  { title: 'Drink a glass of water', icon: '💧' },
-  { title: 'Step outside for 5 minutes', icon: '🌿' },
-  { title: 'Sleep early tonight', icon: '🌙' },
-]
 
 export default function LowEnergyScreen() {
-  const { uid } = useAuthStore()
   const { rituals } = useRitualStore()
   const lowEnergyRituals = rituals.slice(0, 3)
+  const fallbackRituals = [
+    'Drink a glass of water',
+    'Step outside for 5 minutes',
+    'Sleep early tonight',
+  ]
+  const minimumRituals = lowEnergyRituals.length > 0
+    ? lowEnergyRituals.map(ritual => ritual.lowEnergyAlternative ?? ritual.title)
+    : fallbackRituals
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -29,10 +29,12 @@ export default function LowEnergyScreen() {
         </View>
 
         <View style={styles.list}>
-          {minimumRituals.map((r, i) => (
+          {minimumRituals.map((title, i) => (
             <Card key={i} style={styles.ritualRow}>
-              <RText style={styles.icon}>{r.icon}</RText>
-              <RText variant="body">{r.title}</RText>
+              <View style={styles.indexBadge}>
+                <RText variant="caption" color="primary" style={styles.indexText}>{i + 1}</RText>
+              </View>
+              <RText variant="body" style={styles.ritualText}>{title}</RText>
             </Card>
           ))}
         </View>
@@ -60,7 +62,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
-  icon: { fontSize: 24 },
+  indexBadge: {
+    alignItems: 'center',
+    backgroundColor: colors.primaryTint,
+    borderRadius: 14,
+    height: 28,
+    justifyContent: 'center',
+    width: 28,
+  },
+  indexText: {
+    fontFamily: 'Inter-SemiBold',
+  },
+  ritualText: {
+    flex: 1,
+  },
   rest: {
     textAlign: 'center',
     fontStyle: 'italic',

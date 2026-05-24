@@ -1,14 +1,16 @@
 import { create } from 'zustand'
 import { serverTimestamp } from 'firebase/firestore'
 import { callAI } from '@/services/firebase/functions'
-import { saveAISession, getLatestAISession } from '@/services/firebase/firestore'
+import { saveAISession, getAISessions, getLatestAISession } from '@/services/firebase/firestore'
 import type { AIMode, AIInputContext, AISession } from '@/types'
 
 interface AIState {
   activeSession: AISession | null
+  sessions: AISession[]
   loading: boolean
   error: string | null
   fetchLatest: (uid: string) => Promise<void>
+  fetchHistory: (uid: string) => Promise<void>
   request: (uid: string, mode: AIMode, context: AIInputContext) => Promise<void>
   clearSession: () => void
   clearError: () => void
@@ -16,12 +18,26 @@ interface AIState {
 
 export const useAIStore = create<AIState>((set) => ({
   activeSession: null,
+  sessions: [],
   loading: false,
   error: null,
 
   fetchLatest: async (uid) => {
-    const session = await getLatestAISession(uid)
-    set({ activeSession: session })
+    try {
+      const session = await getLatestAISession(uid)
+      set({ activeSession: session, error: null })
+    } catch {
+      set({ error: 'Could not load your latest coach message.' })
+    }
+  },
+
+  fetchHistory: async (uid) => {
+    try {
+      const sessions = await getAISessions(uid)
+      set({ sessions, activeSession: sessions[0] ?? null, error: null })
+    } catch {
+      set({ error: 'Could not load coach history.' })
+    }
   },
 
   request: async (uid, mode, context) => {
@@ -39,12 +55,17 @@ export const useAIStore = create<AIState>((set) => ({
         createdAt: serverTimestamp() as any,
       }
       const sessionId = await saveAISession(uid, sessionPayload)
-      set({ activeSession: { ...sessionPayload, sessionId }, loading: false })
-    } catch (e: any) {
-      set({ error: e.message ?? 'AI request failed', loading: false })
+      const session = { ...sessionPayload, sessionId }
+      set(s => ({
+        activeSession: session,
+        sessions: [session, ...s.sessions.filter(item => item.sessionId !== sessionId)],
+        loading: false,
+      }))
+    } catch {
+      set({ error: 'Coach is not available yet. Please try again after Cloud Functions are configured.', loading: false })
     }
   },
 
-  clearSession: () => set({ activeSession: null }),
+  clearSession: () => set({ activeSession: null, sessions: [] }),
   clearError: () => set({ error: null }),
 }))

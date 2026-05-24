@@ -4,6 +4,8 @@ import { router } from 'expo-router'
 import { colors, spacing } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { RitualCard } from '@/components/features/RitualCard'
 import { copy } from '@/constants/copy'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -12,15 +14,15 @@ import { useCheckInStore } from '@/stores/useCheckInStore'
 
 export default function RitualsScreen() {
   const { uid } = useAuthStore()
-  const { rituals, todayLogs, fetchRituals, fetchTodayLogs, completeRitual, skipRitual } = useRitualStore()
+  const { rituals, todayLogs, loading, error, fetchRituals, fetchTodayLogs, completeRitual, skipRitual } = useRitualStore()
   const { todayCheckIn } = useCheckInStore()
   const energy = todayCheckIn?.energy ?? 10
 
   useEffect(() => {
     if (!uid) return
-    fetchRituals(uid)
-    fetchTodayLogs(uid)
-  }, [uid])
+    void fetchRituals(uid)
+    void fetchTodayLogs(uid)
+  }, [fetchRituals, fetchTodayLogs, uid])
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -37,8 +39,31 @@ export default function RitualsScreen() {
           fullWidth
         />
 
+        {error ? (
+          <Card style={styles.noticeCard}>
+            <RText variant="small" color="error">{error}</RText>
+            <Button
+              label="Try again"
+              onPress={() => {
+                if (!uid) return
+                void fetchRituals(uid)
+                void fetchTodayLogs(uid)
+              }}
+              variant="ghost"
+              size="sm"
+              style={styles.noticeButton}
+            />
+          </Card>
+        ) : null}
+
         <View style={styles.list}>
-          {rituals.length === 0 ? (
+          {loading ? (
+            <>
+              <Skeleton width="100%" height={92} />
+              <Skeleton width="100%" height={92} />
+              <Skeleton width="100%" height={92} />
+            </>
+          ) : rituals.length === 0 ? (
             <RText variant="body" color="muted">{copy.ritual.empty}</RText>
           ) : (
             rituals.map(ritual => (
@@ -48,7 +73,7 @@ export default function RitualsScreen() {
                 log={todayLogs[ritual.ritualId] ?? null}
                 lowEnergyMode={energy <= 3}
                 onComplete={() => uid && completeRitual(uid, ritual.ritualId)}
-                onSkip={(reason) => uid && skipRitual(uid, ritual.ritualId, reason)}
+                onSkip={(reason) => uid && skipRitual(uid, ritual.ritualId, reason ?? 'Rest day')}
                 onPress={() => router.push(`/ritual/${ritual.ritualId}`)}
               />
             ))
@@ -64,4 +89,11 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.screen, gap: spacing.md, paddingBottom: spacing.xxl },
   header: { gap: spacing.xs, paddingTop: spacing.sm },
   list: { gap: spacing.sm },
+  noticeButton: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+  },
+  noticeCard: {
+    gap: spacing.xs,
+  },
 })

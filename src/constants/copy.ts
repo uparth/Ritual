@@ -64,6 +64,9 @@ export const copy = {
   coach: {
     title:     'AI Coach',
     subtitle:  'Choose what you need right now.',
+    inputPlaceholder: 'Tell Ritual what is happening right now.',
+    send: 'Send to coach',
+    empty: 'Choose a mode or write what you need. Ritual will keep it gentle.',
     modes: {
       overthinking: 'I am overthinking',
       heavy:        'I feel heavy',

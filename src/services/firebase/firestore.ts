@@ -5,14 +5,12 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  addDoc,
   query,
   where,
   orderBy,
   limit,
   writeBatch,
   serverTimestamp,
-  Timestamp,
 } from 'firebase/firestore'
 import { db } from './config'
 import type { UserDoc, UserProfile, UserPreferences, DailyCheckIn, CheckInFormData, Ritual, RitualLog, AISession, JournalEntry, WeeklyInsight } from '@/types'
@@ -97,9 +95,10 @@ export async function getTodayLogs(uid: string, date: string): Promise<RitualLog
 }
 
 export async function writeRitualLog(uid: string, log: Omit<RitualLog, 'logId'>): Promise<string> {
-  const ref = doc(collection(db, 'users', uid, 'ritual_logs'))
-  await setDoc(ref, { ...log, logId: ref.id })
-  return ref.id
+  const logId = `${log.date}_${log.ritualId}`
+  const ref = doc(db, 'users', uid, 'ritual_logs', logId)
+  await setDoc(ref, { ...log, logId }, { merge: true })
+  return logId
 }
 
 // ── AI Sessions ───────────────────────────────────────────────────────────────
@@ -116,6 +115,13 @@ export async function getLatestAISession(uid: string): Promise<AISession | null>
   )
   if (snap.empty) return null
   return snap.docs[0].data() as AISession
+}
+
+export async function getAISessions(uid: string, count = 20): Promise<AISession[]> {
+  const snap = await getDocs(
+    query(collection(db, 'users', uid, 'ai_sessions'), orderBy('createdAt', 'desc'), limit(count))
+  )
+  return snap.docs.map(d => d.data() as AISession)
 }
 
 // ── Journal ───────────────────────────────────────────────────────────────────

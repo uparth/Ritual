@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { serverTimestamp } from 'firebase/firestore'
 import { getRituals, getTodayLogs, addRitual, updateRitual, writeRitualLog } from '@/services/firebase/firestore'
-import type { Ritual, RitualLog, LogStatus } from '@/types'
+import type { Ritual, RitualLog } from '@/types'
 
 function todayDateString() {
   return new Date().toISOString().split('T')[0]
@@ -18,6 +18,7 @@ interface RitualState {
   skipRitual: (uid: string, ritualId: string, reason?: string) => Promise<void>
   addRitual: (uid: string, ritual: Omit<Ritual, 'ritualId' | 'createdAt'>) => Promise<void>
   updateRitual: (uid: string, ritualId: string, patch: Partial<Ritual>) => Promise<void>
+  clearError: () => void
 }
 
 export const useRitualStore = create<RitualState>((set, get) => ({
@@ -48,8 +49,9 @@ export const useRitualStore = create<RitualState>((set, get) => ({
   },
 
   completeRitual: async (uid, ritualId) => {
+    const previous = get().todayLogs[ritualId] ?? null
     const optimistic: RitualLog = {
-      logId: `temp_${ritualId}`,
+      logId: `${todayDateString()}_${ritualId}`,
       ritualId,
       date: todayDateString(),
       status: 'completed',
@@ -63,20 +65,26 @@ export const useRitualStore = create<RitualState>((set, get) => ({
       const logId = await writeRitualLog(uid, optimistic)
       set(s => ({
         todayLogs: { ...s.todayLogs, [ritualId]: { ...optimistic, logId } },
+        error: null,
       }))
     } catch {
       set(s => {
         const logs = { ...s.todayLogs }
-        delete logs[ritualId]
-        return { todayLogs: logs }
+        if (previous) {
+          logs[ritualId] = previous
+        } else {
+          delete logs[ritualId]
+        }
+        return { todayLogs: logs, error: 'Could not save ritual completion.' }
       })
       throw new Error('Could not save ritual completion')
     }
   },
 
   skipRitual: async (uid, ritualId, reason) => {
+    const previous = get().todayLogs[ritualId] ?? null
     const optimistic: RitualLog = {
-      logId: `temp_${ritualId}`,
+      logId: `${todayDateString()}_${ritualId}`,
       ritualId,
       date: todayDateString(),
       status: 'skipped',
@@ -90,12 +98,17 @@ export const useRitualStore = create<RitualState>((set, get) => ({
       const logId = await writeRitualLog(uid, optimistic)
       set(s => ({
         todayLogs: { ...s.todayLogs, [ritualId]: { ...optimistic, logId } },
+        error: null,
       }))
     } catch {
       set(s => {
         const logs = { ...s.todayLogs }
-        delete logs[ritualId]
-        return { todayLogs: logs }
+        if (previous) {
+          logs[ritualId] = previous
+        } else {
+          delete logs[ritualId]
+        }
+        return { todayLogs: logs, error: 'Could not save ritual rest day.' }
       })
       throw new Error('Could not save ritual skip')
     }
@@ -112,4 +125,6 @@ export const useRitualStore = create<RitualState>((set, get) => ({
       rituals: s.rituals.map(r => r.ritualId === ritualId ? { ...r, ...patch } : r),
     }))
   },
+
+  clearError: () => set({ error: null }),
 }))

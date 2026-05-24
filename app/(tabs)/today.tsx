@@ -114,7 +114,7 @@ export default function TodayScreen() {
                   log={todayLogs[ritual.ritualId] ?? null}
                   lowEnergyMode={energy <= 3}
                   onComplete={() => uid && completeRitual(uid, ritual.ritualId)}
-                  onSkip={(reason) => uid && skipRitual(uid, ritual.ritualId, reason)}
+                  onSkip={(reason) => uid && skipRitual(uid, ritual.ritualId, reason ?? 'Rest day')}
                   onPress={() => router.push(`/ritual/${ritual.ritualId}`)}
                 />
               ))}
