@@ -10,11 +10,19 @@ import {
   where,
   orderBy,
   limit,
+  writeBatch,
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore'
 import { db } from './config'
-import type { UserProfile, UserPreferences, DailyCheckIn, Ritual, RitualLog, AISession, JournalEntry, WeeklyInsight } from '@/types'
+import type { UserDoc, UserProfile, UserPreferences, DailyCheckIn, CheckInFormData, Ritual, RitualLog, AISession, JournalEntry, WeeklyInsight } from '@/types'
+
+// ── User ─────────────────────────────────────────────────────────────────────
+
+export async function getUserDoc(uid: string): Promise<UserDoc | null> {
+  const snap = await getDoc(doc(db, 'users', uid))
+  return snap.exists() ? (snap.data() as UserDoc) : null
+}
 
 // ── Profile ──────────────────────────────────────────────────────────────────
 
@@ -49,13 +57,14 @@ export async function getCheckIn(uid: string, date: string): Promise<DailyCheckI
   return snap.exists() ? (snap.data() as DailyCheckIn) : null
 }
 
-export async function saveCheckIn(uid: string, checkIn: Omit<DailyCheckIn, 'createdAt' | 'updatedAt'>): Promise<void> {
+export async function saveCheckIn(uid: string, checkIn: CheckInFormData): Promise<void> {
   const ref = doc(db, 'users', uid, 'daily_checkins', checkIn.date)
+  const payload = { ...checkIn, aiSessionId: null }
   const existing = await getDoc(ref)
   if (existing.exists()) {
-    await updateDoc(ref, { ...checkIn, updatedAt: serverTimestamp() })
+    await updateDoc(ref, { ...payload, updatedAt: serverTimestamp() })
   } else {
-    await setDoc(ref, { ...checkIn, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+    await setDoc(ref, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
   }
 }
 
@@ -138,4 +147,44 @@ export async function getInsight(uid: string, weekId: string): Promise<WeeklyIns
 
 export async function markOnboardingComplete(uid: string): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { onboardingComplete: true })
+}
+
+export async function saveOnboardingPlan(
+  uid: string,
+  profile: Omit<UserProfile, 'updatedAt'>,
+  preferences: Omit<UserPreferences, 'updatedAt'>,
+  rituals: Omit<Ritual, 'ritualId' | 'createdAt'>[],
+): Promise<void> {
+  const batch = writeBatch(db)
+  const timestamp = serverTimestamp()
+
+  batch.set(doc(db, 'users', uid, 'profile', 'main'), {
+    ...profile,
+    updatedAt: timestamp,
+  })
+
+  batch.set(doc(db, 'users', uid, 'preferences', 'main'), {
+    ...preferences,
+    updatedAt: timestamp,
+  })
+
+  rituals.forEach((ritual) => {
+    const ritualId = `starter-${ritual.order}`
+    batch.set(doc(db, 'users', uid, 'rituals', ritualId), {
+      ...ritual,
+      ritualId,
+      createdAt: timestamp,
+    })
+  })
+
+  batch.set(
+    doc(db, 'users', uid),
+    {
+      onboardingComplete: true,
+      updatedAt: timestamp,
+    },
+    { merge: true },
+  )
+
+  await batch.commit()
 }

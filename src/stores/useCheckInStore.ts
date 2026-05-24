@@ -29,11 +29,14 @@ const defaultDraft = (): Partial<CheckInFormData> => ({
 interface CheckInState {
   todayCheckIn: DailyCheckIn | null
   draft: Partial<CheckInFormData>
+  loading: boolean
   saving: boolean
+  error: string | null
   fetchToday: (uid: string) => Promise<void>
   setDraftField: <K extends keyof CheckInFormData>(field: K, value: CheckInFormData[K]) => void
   resetDraft: (type?: 'morning' | 'evening') => void
-  save: (uid: string) => Promise<void>
+  save: (uid: string, data?: CheckInFormData) => Promise<void>
+  clearError: () => void
 }
 
 export const useCheckInStore = create<CheckInState>()(
@@ -41,11 +44,18 @@ export const useCheckInStore = create<CheckInState>()(
     (set, get) => ({
       todayCheckIn: null,
       draft: defaultDraft(),
+      loading: false,
       saving: false,
+      error: null,
 
       fetchToday: async (uid) => {
-        const checkIn = await getCheckIn(uid, todayDateString())
-        set({ todayCheckIn: checkIn })
+        set({ loading: true, error: null })
+        try {
+          const checkIn = await getCheckIn(uid, todayDateString())
+          set({ todayCheckIn: checkIn, loading: false })
+        } catch {
+          set({ error: 'Could not load today’s check-in.', loading: false })
+        }
       },
 
       setDraftField: (field, value) => {
@@ -56,19 +66,22 @@ export const useCheckInStore = create<CheckInState>()(
         set({ draft: { ...defaultDraft(), type } })
       },
 
-      save: async (uid) => {
+      save: async (uid, data) => {
         const { draft } = get()
-        if (!draft.date) return
-        set({ saving: true })
+        const checkIn = data ?? draft
+        if (!checkIn.date) return
+        set({ saving: true, error: null, draft: checkIn })
         try {
-          await saveCheckIn(uid, draft as Omit<DailyCheckIn, 'createdAt' | 'updatedAt'>)
-          const saved = await getCheckIn(uid, draft.date)
+          await saveCheckIn(uid, checkIn as CheckInFormData)
+          const saved = await getCheckIn(uid, checkIn.date)
           set({ todayCheckIn: saved, saving: false })
         } catch {
-          set({ saving: false })
+          set({ error: 'Could not save your check-in. Please try again.', saving: false })
           throw new Error('Check-in save failed')
         }
       },
+
+      clearError: () => set({ error: null }),
     }),
     {
       name: 'ritual-checkin-draft',

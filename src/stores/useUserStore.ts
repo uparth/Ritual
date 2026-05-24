@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { getProfile, setProfile, updateProfile, getPreferences, setPreferences, markOnboardingComplete } from '@/services/firebase/firestore'
-import type { UserProfile, UserPreferences } from '@/types'
+import { getUserDoc, getProfile, setProfile, updateProfile, getPreferences, setPreferences, markOnboardingComplete, saveOnboardingPlan } from '@/services/firebase/firestore'
+import type { Ritual, UserProfile, UserPreferences } from '@/types'
 
 interface UserState {
   profile: UserProfile | null
@@ -14,6 +14,12 @@ interface UserState {
   updateProfile: (uid: string, patch: Partial<UserProfile>) => Promise<void>
   updatePreferences: (uid: string, patch: Partial<UserPreferences>) => Promise<void>
   completeOnboarding: (uid: string, profile: Omit<UserProfile, 'updatedAt'>) => Promise<void>
+  completeOnboardingPlan: (
+    uid: string,
+    profile: Omit<UserProfile, 'updatedAt'>,
+    preferences: Omit<UserPreferences, 'updatedAt'>,
+    rituals: Omit<Ritual, 'ritualId' | 'createdAt'>[],
+  ) => Promise<void>
   reset: () => void
 }
 
@@ -28,8 +34,23 @@ export const useUserStore = create<UserState>()(
 
       fetchUser: async (uid) => {
         set({ loading: true })
-        const [profile, prefs] = await Promise.all([getProfile(uid), getPreferences(uid)])
-        set({ profile, preferences: prefs, loading: false })
+        try {
+          const [user, profile, prefs] = await Promise.all([
+            getUserDoc(uid),
+            getProfile(uid),
+            getPreferences(uid),
+          ])
+          set({
+            profile,
+            preferences: prefs,
+            onboardingComplete: user?.onboardingComplete ?? Boolean(profile),
+            isPremium: user?.isPremium ?? false,
+            loading: false,
+          })
+        } catch (error) {
+          set({ loading: false })
+          throw error
+        }
       },
 
       updateProfile: async (uid, patch) => {
@@ -51,6 +72,15 @@ export const useUserStore = create<UserState>()(
           markOnboardingComplete(uid),
         ])
         set({ profile: profile as UserProfile, onboardingComplete: true })
+      },
+
+      completeOnboardingPlan: async (uid, profile, preferences, rituals) => {
+        await saveOnboardingPlan(uid, profile, preferences, rituals)
+        set({
+          profile: profile as UserProfile,
+          preferences: preferences as UserPreferences,
+          onboardingComplete: true,
+        })
       },
 
       reset: () => set({ profile: null, preferences: null, onboardingComplete: false, isPremium: false }),

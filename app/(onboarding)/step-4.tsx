@@ -26,6 +26,9 @@ export default function Step4() {
             labelMin="Under 4 hrs"
             labelMax="10+ hrs"
             color={colors.primary}
+            minimumValue={3}
+            maximumValue={12}
+            step={0.5}
           />
           <RText variant="h2" style={{ textAlign: 'center' }}>
             {answers.sleepHours ?? 7} hrs

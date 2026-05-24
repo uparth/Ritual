@@ -1,22 +1,41 @@
-import { useState } from 'react'
-import { View, TextInput, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import { View, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import { router } from 'expo-router'
-import { colors, spacing, radius, font } from '@/constants/tokens'
+import { useForm } from 'react-hook-form'
+import { colors, spacing } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
+import { FormTextInput } from '@/components/forms'
 import { copy } from '@/constants/copy'
 import { useAuthStore } from '@/stores/useAuthStore'
 
+type SignupFormData = {
+  name: string
+  email: string
+  password: string
+}
+
 export default function SignupScreen() {
   const { signUp, error, authLoading, clearError } = useAuthStore()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const {
+    control,
+    formState: { isValid },
+    handleSubmit,
+  } = useForm<SignupFormData>({
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+    mode: 'onChange',
+  })
 
-  async function handleSignUp() {
+  async function handleSignUp(data: SignupFormData) {
     clearError()
-    if (!name || !email || !password) return
-    await signUp(email, password, name)
+    try {
+      await signUp(data.email.trim(), data.password, data.name.trim())
+    } catch {
+      // Store owns the user-facing error state.
+    }
   }
 
   return (
@@ -30,48 +49,63 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.form}>
-            <View style={styles.field}>
-              <RText variant="small" color="subtle">{copy.auth.name}</RText>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Your first name"
-                placeholderTextColor={colors.muted}
-                autoCapitalize="words"
-              />
-            </View>
-            <View style={styles.field}>
-              <RText variant="small" color="subtle">{copy.auth.email}</RText>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@email.com"
-                placeholderTextColor={colors.muted}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.field}>
-              <RText variant="small" color="subtle">{copy.auth.password}</RText>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="8+ characters"
-                placeholderTextColor={colors.muted}
-                secureTextEntry
-              />
-            </View>
+            <FormTextInput
+              control={control}
+              name="name"
+              label={copy.auth.name}
+              placeholder="Your first name"
+              autoCapitalize="words"
+              autoComplete="name"
+              textContentType="givenName"
+              rules={{
+                required: copy.errors.required,
+                minLength: {
+                  value: 2,
+                  message: 'Use at least 2 characters.',
+                },
+              }}
+            />
+            <FormTextInput
+              control={control}
+              name="email"
+              label={copy.auth.email}
+              placeholder="you@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              rules={{
+                required: copy.errors.required,
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: 'Enter a valid email address.',
+                },
+              }}
+            />
+            <FormTextInput
+              control={control}
+              name="password"
+              label={copy.auth.password}
+              placeholder="8+ characters"
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+              rules={{
+                required: copy.errors.required,
+                minLength: {
+                  value: 8,
+                  message: 'Use at least 8 characters.',
+                },
+              }}
+            />
 
             {error && <RText variant="small" color="error">{error}</RText>}
 
             <Button
               label={copy.auth.signUp}
-              onPress={handleSignUp}
+              onPress={handleSubmit(handleSignUp)}
               loading={authLoading}
-              disabled={!name || !email || !password}
+              disabled={!isValid}
               fullWidth
               size="lg"
               style={{ marginTop: spacing.sm }}
@@ -93,18 +127,6 @@ const styles = StyleSheet.create({
   container: { padding: spacing.screen, gap: spacing.xl, flexGrow: 1 },
   header: { gap: spacing.xs },
   form: { gap: spacing.md },
-  field: { gap: spacing.xs },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.input,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    color: colors.textPrimary,
-    fontSize: font.size.body,
-    fontFamily: 'Inter-Regular',
-    minHeight: 50,
-  },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',

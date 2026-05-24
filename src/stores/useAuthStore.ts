@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { FirebaseError } from 'firebase/app'
 import { signIn, signUp, signOut, listenAuth } from '@/services/firebase/auth'
 
 interface AuthState {
@@ -11,6 +12,29 @@ interface AuthState {
   signOut: () => Promise<void>
   listenToAuth: () => () => void
   clearError: () => void
+}
+
+function getAuthErrorMessage(error: unknown): string {
+  if (!(error instanceof FirebaseError)) {
+    return 'Something went wrong. Please try again.'
+  }
+
+  switch (error.code) {
+    case 'auth/email-already-in-use':
+      return 'An account already exists for this email.'
+    case 'auth/invalid-credential':
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+      return 'Please check your email and password.'
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.'
+    case 'auth/weak-password':
+      return 'Please use a password with at least 8 characters.'
+    case 'auth/network-request-failed':
+      return 'You seem to be offline. Please try again when connected.'
+    default:
+      return 'Authentication failed. Please try again.'
+  }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -29,9 +53,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ error: null, authLoading: true })
     try {
       await signIn(email, password)
-    } catch (e: any) {
-      set({ error: e.message ?? 'Sign in failed', authLoading: false })
-      throw e
+    } catch (error) {
+      set({ error: getAuthErrorMessage(error), authLoading: false })
+      throw error
     }
   },
 
@@ -39,9 +63,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ error: null, authLoading: true })
     try {
       await signUp(email, password, name)
-    } catch (e: any) {
-      set({ error: e.message ?? 'Sign up failed', authLoading: false })
-      throw e
+    } catch (error) {
+      set({ error: getAuthErrorMessage(error), authLoading: false })
+      throw error
     }
   },
 

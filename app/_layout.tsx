@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Redirect, Stack } from 'expo-router'
+import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import * as SplashScreen from 'expo-splash-screen'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -11,7 +11,7 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined)
 
 export default function RootLayout() {
   const { uid, authLoading, listenToAuth } = useAuthStore()
-  const { onboardingComplete } = useUserStore()
+  const { loading: userLoading, fetchUser, reset } = useUserStore()
 
   useEffect(() => {
     const unsub = listenToAuth()
@@ -19,20 +19,29 @@ export default function RootLayout() {
   }, [])
 
   useEffect(() => {
-    if (!authLoading) {
+    if (!uid) {
+      reset()
+      return
+    }
+
+    fetchUser(uid).catch(() => undefined)
+  }, [uid, fetchUser, reset])
+
+  useEffect(() => {
+    if (!authLoading && !userLoading) {
       SplashScreen.hideAsync().catch(() => undefined)
     }
-  }, [authLoading])
+  }, [authLoading, userLoading])
 
-  if (authLoading) return null
-
-  if (!uid) return <Redirect href="/(auth)/welcome" />
-  if (!onboardingComplete) return <Redirect href="/(onboarding)/step-1" />
+  if (authLoading || userLoading) return null
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="check-in" options={{ presentation: 'modal' }} />
         <Stack.Screen name="low-energy" options={{ presentation: 'modal' }} />

@@ -10,6 +10,9 @@ interface MoodSliderProps {
   labelMin?: string
   labelMax?: string
   color?: string
+  minimumValue?: number
+  maximumValue?: number
+  step?: number
 }
 
 export function MoodSlider({
@@ -19,6 +22,9 @@ export function MoodSlider({
   labelMin = 'Low',
   labelMax = 'High',
   color = colors.primary,
+  minimumValue = 1,
+  maximumValue = 10,
+  step = 1,
 }: MoodSliderProps) {
   return (
     <View style={styles.container}>
@@ -30,9 +36,9 @@ export function MoodSlider({
       </View>
       <Slider
         style={styles.slider}
-        minimumValue={1}
-        maximumValue={10}
-        step={1}
+        minimumValue={minimumValue}
+        maximumValue={maximumValue}
+        step={step}
         value={value}
         onValueChange={onChange}
         minimumTrackTintColor={color}

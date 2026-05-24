@@ -11,6 +11,7 @@ interface RitualState {
   rituals: Ritual[]
   todayLogs: Record<string, RitualLog>  // keyed by ritualId
   loading: boolean
+  error: string | null
   fetchRituals: (uid: string) => Promise<void>
   fetchTodayLogs: (uid: string) => Promise<void>
   completeRitual: (uid: string, ritualId: string) => Promise<void>
@@ -23,18 +24,27 @@ export const useRitualStore = create<RitualState>((set, get) => ({
   rituals: [],
   todayLogs: {},
   loading: false,
+  error: null,
 
   fetchRituals: async (uid) => {
-    set({ loading: true })
-    const rituals = await getRituals(uid)
-    set({ rituals, loading: false })
+    set({ loading: true, error: null })
+    try {
+      const rituals = await getRituals(uid)
+      set({ rituals, loading: false })
+    } catch {
+      set({ error: 'Could not load today’s rituals.', loading: false })
+    }
   },
 
   fetchTodayLogs: async (uid) => {
-    const logs = await getTodayLogs(uid, todayDateString())
-    const map: Record<string, RitualLog> = {}
-    logs.forEach(l => { map[l.ritualId] = l })
-    set({ todayLogs: map })
+    try {
+      const logs = await getTodayLogs(uid, todayDateString())
+      const map: Record<string, RitualLog> = {}
+      logs.forEach(l => { map[l.ritualId] = l })
+      set({ todayLogs: map, error: null })
+    } catch {
+      set({ error: 'Could not load ritual progress.' })
+    }
   },
 
   completeRitual: async (uid, ritualId) => {

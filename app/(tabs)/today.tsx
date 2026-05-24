@@ -4,7 +4,9 @@ import { router } from 'expo-router'
 import { colors, spacing } from '@/constants/tokens'
 import { RText } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { Divider } from '@/components/ui/Divider'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { RitualCard } from '@/components/features/RitualCard'
 import { AIMessageCard } from '@/components/features/AIMessageCard'
 import { LowEnergyBanner } from '@/components/features/LowEnergyBanner'
@@ -19,8 +21,8 @@ import { getGreetingKey } from '@/utils/planBuilder'
 export default function TodayScreen() {
   const { uid } = useAuthStore()
   const { profile } = useUserStore()
-  const { todayCheckIn, fetchToday } = useCheckInStore()
-  const { rituals, todayLogs, fetchRituals, fetchTodayLogs, completeRitual, skipRitual } = useRitualStore()
+  const { todayCheckIn, loading: checkInLoading, error: checkInError, fetchToday } = useCheckInStore()
+  const { rituals, todayLogs, loading: ritualsLoading, error: ritualError, fetchRituals, fetchTodayLogs, completeRitual, skipRitual } = useRitualStore()
   const { activeSession, loading: aiLoading, fetchLatest } = useAIStore()
 
   const energy = todayCheckIn?.energy ?? 10
@@ -29,13 +31,15 @@ export default function TodayScreen() {
 
   useEffect(() => {
     if (!uid) return
-    fetchToday(uid)
-    fetchRituals(uid)
-    fetchTodayLogs(uid)
-    fetchLatest(uid)
-  }, [uid])
+    void fetchToday(uid)
+    void fetchRituals(uid)
+    void fetchTodayLogs(uid)
+    void fetchLatest(uid)
+  }, [fetchLatest, fetchRituals, fetchToday, fetchTodayLogs, uid])
 
   const todayRituals = rituals.slice(0, 3)
+  const loading = checkInLoading || ritualsLoading
+  const error = checkInError ?? ritualError
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -53,8 +57,26 @@ export default function TodayScreen() {
           onActivate={() => router.push('/low-energy')}
         />
 
+        {error ? (
+          <Card style={styles.noticeCard}>
+            <RText variant="small" color="error">{error}</RText>
+            <Button
+              label="Try again"
+              onPress={() => {
+                if (!uid) return
+                void fetchToday(uid)
+                void fetchRituals(uid)
+                void fetchTodayLogs(uid)
+              }}
+              variant="ghost"
+              size="sm"
+              style={styles.noticeButton}
+            />
+          </Card>
+        ) : null}
+
         {/* Check-in CTA */}
-        {!todayCheckIn && (
+        {!loading && !todayCheckIn && (
           <Button
             label={copy.today.checkInCTA}
             onPress={() => router.push('/check-in')}
@@ -75,7 +97,13 @@ export default function TodayScreen() {
         {/* Today's Rituals */}
         <View style={styles.section}>
           <RText variant="h3">Today's rituals</RText>
-          {todayRituals.length === 0 ? (
+          {loading ? (
+            <View style={styles.ritualList}>
+              <Skeleton width="100%" height={92} />
+              <Skeleton width="100%" height={92} />
+              <Skeleton width="100%" height={92} />
+            </View>
+          ) : todayRituals.length === 0 ? (
             <RText variant="body" color="muted">{copy.ritual.empty}</RText>
           ) : (
             <View style={styles.ritualList}>
@@ -125,5 +153,12 @@ const styles = StyleSheet.create({
   },
   ritualList: {
     gap: spacing.sm,
+  },
+  noticeButton: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+  },
+  noticeCard: {
+    gap: spacing.xs,
   },
 })
